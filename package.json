@@ -1,0 +1,29 @@
+{
+  "name": "odo-hub",
+  "version": "1.0.0",
+  "description": "Simple pub sub",
+  "main": "hub.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/odojs/odo-hub.git"
+  },
+  "keywords": [
+    "hub",
+    "pub",
+    "sub"
+  ],
+  "author": "Thomas Coats",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/odojs/odo-hub/issues"
+  },
+  "homepage": "https://github.com/odojs/odo-hub",
+  "dependencies": {
+    "odo-async": "^1.0.0",
+    "odo-sequencer": "^1.0.0",
+    "odo-template": "^1.0.0"
+  }
+}
