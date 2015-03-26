@@ -7,17 +7,18 @@ bind = ->
   # Publish is async
   class Hub
     constructor: ->
-      @listeners = {}
-      @sequencer = new Sequencer()
+      @_listeners = {}
+      @_all = []
+      @_seq = new Sequencer()
     
     _every: (e, cb) =>
-      @listeners[e] = [] if !@listeners[e]?
-      @listeners[e].push cb
+      @_listeners[e] = [] if !@_listeners[e]?
+      @_listeners[e].push cb
       
       off: =>
-        index = @listeners[e].indexOf(cb)
+        index = @_listeners[e].indexOf cb
         if index isnt -1
-          @listeners[e].splice index, 1
+          @_listeners[e].splice index, 1
     
     # Subscribe to an event
     every: (events, cb) =>
@@ -68,17 +69,30 @@ bind = ->
       
       off: unbind
     
+    all: (cb) =>
+      @_all.push cb
+      off: ->
+        index = @_all.indexOf cb
+        if index isnt -1
+          @_all.splice index, 1
+    
     # Publish an event
     emit: (e, m, ecb) =>
       description = "#{template e, m}"
-      console.log "+ #{description}"
       
       tasks = []
-      if @listeners[e]?
-        for listener in @listeners[e].slice()
+      for listener in @_all
+        do (listener) =>
+          tasks.push (pcb) =>
+            @_seq.exec description, (scb) ->
+              listener e, description, m, ->
+                pcb()
+                scb()
+      if @_listeners[e]?
+        for listener in @_listeners[e].slice()
           do (listener) =>
             tasks.push (pcb) =>
-              @sequencer.exec description, (scb) ->
+              @_seq.exec description, (scb) ->
                 listener m, ->
                   pcb()
                   scb()
@@ -86,7 +100,7 @@ bind = ->
       async.parallel tasks, -> ecb() if ecb?
     
     ready: (cb) =>
-      @sequencer.ready cb
+      @_seq.ready cb
   
   new Hub()
 

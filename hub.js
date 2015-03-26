@@ -14,27 +14,29 @@ bind = function() {
     function Hub() {
       this.ready = __bind(this.ready, this);
       this.emit = __bind(this.emit, this);
+      this.all = __bind(this.all, this);
       this.any = __bind(this.any, this);
       this.once = __bind(this.once, this);
       this._once = __bind(this._once, this);
       this.every = __bind(this.every, this);
       this._every = __bind(this._every, this);
-      this.listeners = {};
-      this.sequencer = new Sequencer();
+      this._listeners = {};
+      this._all = [];
+      this._seq = new Sequencer();
     }
 
     Hub.prototype._every = function(e, cb) {
-      if (this.listeners[e] == null) {
-        this.listeners[e] = [];
+      if (this._listeners[e] == null) {
+        this._listeners[e] = [];
       }
-      this.listeners[e].push(cb);
+      this._listeners[e].push(cb);
       return {
         off: (function(_this) {
           return function() {
             var index;
-            index = _this.listeners[e].indexOf(cb);
+            index = _this._listeners[e].indexOf(cb);
             if (index !== -1) {
-              return _this.listeners[e].splice(index, 1);
+              return _this._listeners[e].splice(index, 1);
             }
           };
         })(this)
@@ -169,17 +171,46 @@ bind = function() {
       };
     };
 
+    Hub.prototype.all = function(cb) {
+      this._all.push(cb);
+      return {
+        off: function() {
+          var index;
+          index = this._all.indexOf(cb);
+          if (index !== -1) {
+            return this._all.splice(index, 1);
+          }
+        }
+      };
+    };
+
     Hub.prototype.emit = function(e, m, ecb) {
-      var description, listener, tasks, _fn, _i, _len, _ref;
+      var description, listener, tasks, _fn, _fn1, _i, _j, _len, _len1, _ref, _ref1;
       description = "" + (template(e, m));
-      console.log("+ " + description);
       tasks = [];
-      if (this.listeners[e] != null) {
-        _ref = this.listeners[e].slice();
-        _fn = (function(_this) {
+      _ref = this._all;
+      _fn = (function(_this) {
+        return function(listener) {
+          return tasks.push(function(pcb) {
+            return _this._seq.exec(description, function(scb) {
+              return listener(e, description, m, function() {
+                pcb();
+                return scb();
+              });
+            });
+          });
+        };
+      })(this);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        listener = _ref[_i];
+        _fn(listener);
+      }
+      if (this._listeners[e] != null) {
+        _ref1 = this._listeners[e].slice();
+        _fn1 = (function(_this) {
           return function(listener) {
             return tasks.push(function(pcb) {
-              return _this.sequencer.exec(description, function(scb) {
+              return _this._seq.exec(description, function(scb) {
                 return listener(m, function() {
                   pcb();
                   return scb();
@@ -188,9 +219,9 @@ bind = function() {
             });
           };
         })(this);
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          listener = _ref[_i];
-          _fn(listener);
+        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+          listener = _ref1[_j];
+          _fn1(listener);
         }
       }
       return async.parallel(tasks, function() {
@@ -201,7 +232,7 @@ bind = function() {
     };
 
     Hub.prototype.ready = function(cb) {
-      return this.sequencer.ready(cb);
+      return this._seq.ready(cb);
     };
 
     return Hub;
