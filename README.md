@@ -2,8 +2,10 @@
 Simple pub sub.
 
 # Notes
+
 - Subscribers are required to callback to continue processing
-- 
+- Uses a template so events can also be logs e.g. `sent message to {recipient}` - recipient is replaced with the property from the event payload
+- Maintains a consistent execution order
 
 ```js
 var hub = require('odo-hub');
