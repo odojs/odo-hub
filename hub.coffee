@@ -1,109 +1,96 @@
-Sequencer = require 'odo-sequencer'
 async = require 'odo-async'
 template = require 'odo-template'
 
-bind = ->
-  # Simple publish and subscribe
-  # Publish is async
-  class Hub
-    constructor: ->
-      @_listeners = {}
-      @_all = []
-      @_seq = new Sequencer()
+module.exports = (dispatcher) ->
+  listeners = {}
+  all = []
 
-    create: -> new Hub()
+  every = (e, cb) ->
+    listeners[e] = [] if !listeners[e]?
+    listeners[e].push cb
 
-    _every: (e, cb) =>
-      @_listeners[e] = [] if !@_listeners[e]?
-      @_listeners[e].push cb
+    off: ->
+      index = listeners[e].indexOf cb
+      if index isnt -1
+        listeners[e].splice index, 1
 
-      off: =>
-        index = @_listeners[e].indexOf cb
-        if index isnt -1
-          @_listeners[e].splice index, 1
+  once = (e, cb) ->
+    binding = every e, (payload, callback) ->
+      binding.off()
+      cb payload, callback
+    off: -> binding.off()
 
-    # Subscribe to an event
-    every: (events, cb) =>
-      events = [events] unless events instanceof Array
-      bindings = for e in events
-        event: e
+  # Subscribe to an event
+  every: (events, cb) ->
+    events = [events] unless events instanceof Array
+    bindings = for e in events
+      event: e
 
-      for e in bindings
-        e.binding = @_every e.event, cb
+    for e in bindings
+      e.binding = every e.event, cb
 
-      off: => e.binding.off() for e in bindings
+    off: -> e.binding.off() for e in bindings
 
-    _once: (e, cb) =>
-      binding = @every e, (payload, callback) =>
-        binding.off()
-        cb payload, callback
-      off: -> binding.off()
+  once: (events, cb) ->
+    events = [events] unless events instanceof Array
+    count = 0
+    bindings = for e in events
+      count++
+      event: e
+      complete: no
 
-    once: (events, cb) =>
-      events = [events] unless events instanceof Array
-      count = 0
-      bindings = for e in events
-        count++
-        event: e
-        complete: no
+    for e in bindings
+      e.binding = once e.event, (m, callback) ->
+        count--
+        e.complete = yes
+        if count is 0
+          cb(m, callback)
+        else
+          callback()
 
-      for e in bindings
-        e.binding = @_once e.event, (m, callback) ->
-          count--
-          e.complete = yes
-          if count is 0
-            cb(m, callback)
-          else
-            callback()
+    off: -> e.binding.off() for e in bindings
 
-      off: -> e.binding.off() for e in bindings
+  any: (events, cb) ->
+    bindings = for e in events
+      event: e
 
-    any: (events, cb) =>
-      bindings = for e in events
-        event: e
+    unbind = -> e.binding.off() for e in bindings
 
-      unbind = -> e.binding.off() for e in bindings
+    for e in bindings
+      e.binding = once e.event, ->
+        unbind()
+        cb()
 
-      for e in bindings
-        e.binding = @_once e.event, ->
-          unbind()
-          cb()
+    off: unbind
 
-      off: unbind
+  all: (cb) ->
+    all.push cb
+    off: ->
+      index = all.indexOf cb
+      if index isnt -1
+        all.splice index, 1
 
-    all: (cb) =>
-      @_all.push cb
-      off: ->
-        index = @_all.indexOf cb
-        if index isnt -1
-          @_all.splice index, 1
+  # Publish an event
+  emit: (e, m, ecb) ->
+    description = "#{template e, m}"
 
-    # Publish an event
-    emit: (e, m, ecb) =>
-      description = "#{template e, m}"
-
-      tasks = []
-      for listener in @_all
-        do (listener) =>
-          tasks.push (pcb) =>
-            @_seq.exec description, (scb) ->
-              listener e, description, m, ->
+    tasks = []
+    for listener in all
+      do (listener) ->
+        tasks.push (pcb) ->
+          dispatcher.exec description, (scb) ->
+            listener e, description, m, ->
+              pcb()
+              scb()
+    if listeners[e]?
+      for listener in listeners[e].slice()
+        do (listener) ->
+          tasks.push (pcb) ->
+            dispatcher.exec description, (scb) ->
+              listener m, ->
                 pcb()
                 scb()
-      if @_listeners[e]?
-        for listener in @_listeners[e].slice()
-          do (listener) =>
-            tasks.push (pcb) =>
-              @_seq.exec description, (scb) ->
-                listener m, ->
-                  pcb()
-                  scb()
 
-      async.parallel tasks, -> ecb() if ecb?
+    async.parallel tasks, -> ecb() if ecb?
 
-    ready: (cb) =>
-      @_seq.ready cb
-
-  new Hub()
-
-module.exports = bind()
+  ready: (cb) -> dispatcher.ready cb
