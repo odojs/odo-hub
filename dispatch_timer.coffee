@@ -5,7 +5,7 @@ module.exports = (dispatcher) ->
     duration = 0
     interval = setInterval ->
       duration += _timeout
-      console.log "? #{description} has been running for #{duration / 1000} seconds"
+      console.log "[odo-hub] #{description} has been running for #{duration / 1000} seconds"
     , _timeout
     dispatcher.exec description, action, ->
       clearInterval interval

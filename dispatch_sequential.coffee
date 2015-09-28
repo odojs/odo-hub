@@ -17,7 +17,7 @@ module.exports = ->
     item = _queue.shift()
     item.action ->
       item.callback() if item.callback?
-      _next()
+      async.delay _next
 
   exec: (description, action, cb) ->
     # add another item to the queue

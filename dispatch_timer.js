@@ -8,7 +8,7 @@ module.exports = function(dispatcher) {
       duration = 0;
       interval = setInterval(function() {
         duration += _timeout;
-        return console.log("? " + description + " has been running for " + (duration / 1000) + " seconds");
+        return console.log("[odo-hub] " + description + " has been running for " + (duration / 1000) + " seconds");
       }, _timeout);
       return dispatcher.exec(description, action, function() {
         clearInterval(interval);

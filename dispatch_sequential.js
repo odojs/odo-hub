@@ -25,7 +25,7 @@ module.exports = function() {
       if (item.callback != null) {
         item.callback();
       }
-      return _next();
+      return async.delay(_next);
     });
   };
   return {
