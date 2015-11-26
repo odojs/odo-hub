@@ -1,1 +1,1 @@
-module.exports = require './sequential'
+module.exports = require './dispatch_sequential'
