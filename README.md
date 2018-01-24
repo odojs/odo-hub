@@ -8,7 +8,7 @@ Simple pub sub.
 - Maintains a consistent execution order
 
 ```js
-var hub = require('odo-hub');
+var hub = require('odo-hub')();
 
 var hellosub = hub.every('hello {person}', function(p, cb) {
   console.log(p.person);
