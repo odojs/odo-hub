@@ -119,7 +119,7 @@ module.exports = (defaultbindings) => {
         tasks.push((cb) => {
           async.delay(() => { listener(e, description, m, cb) })
         })
-      })()
+      })(listener)
 
     if (listeners[e] != null)
       for (let listener of listeners[e].slice())
@@ -127,14 +127,14 @@ module.exports = (defaultbindings) => {
           tasks.push((cb) => {
             async.delay(() => { listener(m, cb) })
           })
-        })()
+        })(listener)
     else
       for (let listener of listeners[e].slice())
         ((listener) => {
           tasks.push((cb) => {
             async.delay(() => { listener(e, description, m, cb) })
           })
-        })()
+        })(listener)
 
     async.parallel(tasks, () => {
       if (ecb != null) ecb()
