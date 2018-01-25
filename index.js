@@ -7,7 +7,9 @@ module.exports = (defaultbindings) => {
   const none = []
 
   const every = (e, cb) => {
-    if (listeners[e] == null) listeners[e] = []
+    if (listeners[e] == null) {
+      listeners[e] = []
+    }
     listeners[e].push(cb)
     return {
       off: () => {
@@ -129,7 +131,7 @@ module.exports = (defaultbindings) => {
           })
         })(listener)
     else
-      for (let listener of listeners[e].slice())
+      for (let listener of none)
         ((listener) => {
           tasks.push((cb) => {
             async.delay(() => { listener(e, description, m, cb) })
