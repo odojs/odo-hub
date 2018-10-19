@@ -3,7 +3,8 @@ module.exports = (initial) => {
   const unhandled = []
   if (initial) for (let e of Object.keys(initial)) listeners[e] = [initial[e]]
   const emit = (e, ...args) => {
-    if (listeners[e] == null) Promise.all(unhandled.map((fn) => fn(e, ...args)))
+    if (listeners[e] == null)
+      return Promise.all(unhandled.map((fn) => fn(e, ...args)))
     return Promise.all(listeners[e].map((fn) => fn(...args)))
   }
 
