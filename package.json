@@ -1,6 +1,6 @@
 {
   "name": "odo-hub",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Simple pub sub",
   "main": "index.js",
   "scripts": {
