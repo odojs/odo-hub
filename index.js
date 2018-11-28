@@ -20,6 +20,10 @@ module.exports = (initial) => {
     },
     emit: emit,
     unhandled: (fn) => unhandled.push(fn),
+    unhandledOff: (fn) => {
+      const index = unhandled.indexOf(fn)
+      if (index !== -1) unhandled.splice(index, 1)
+    },
     child: (initial) => {
       const res = module.exports(initial)
       res.unhandled((e, ...args) => emit(e, ...args))
