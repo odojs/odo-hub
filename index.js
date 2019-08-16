@@ -1,4 +1,3 @@
-
 module.exports = (initial) => {
   const listeners = {}
   const unhandled = []
