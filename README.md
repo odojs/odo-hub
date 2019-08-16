@@ -97,7 +97,7 @@ hub.emit('new person', 'Bob', 'bob@hotmail.com')
 
 ## hub.unhandled(fn)
 
-Register a lister for any events that are unhandled (have no listeners). Uses promises. fn has signature (event, args...)
+Register a listener for any events that are unhandled (have no listeners). Uses promises. fn has signature (event, args...)
 
 ```js
 hub.on('cheese', () => console.log('cheese!'))
@@ -105,7 +105,7 @@ hub.unhandled((event, ...args) => {
   console.log('unknown event', event)
 })
 hub.emit('cheese') // cheese!
-hub.emit('bread') // unknown event
+hub.emit('bread') // unknown event bread
 ```
 
 ## hub.unhandledOff(fn)
@@ -119,14 +119,14 @@ const unhandled = (event, ...args) => {
 hub.on('cheese', () => console.log('cheese!'))
 hub.unhandled(unhandled)
 hub.emit('cheese') // cheese!
-hub.emit('bread') // unknown event
+hub.emit('bread') // unknown event bread
 hub.unhandledOff(unhandled)
 hub.emit('bread') // <nothing>
 ```
 
 ## hub.child(initial)
 
-Creates a child hub where all events unhandled by listerners on the child are propigated up to the parent (current) hub. Takes an optional object of event names to functions as initial listeners.
+Creates a child hub where all events unhandled by listeners on the child are propigated up to the parent (current) hub. Takes an optional object of event names to functions as initial listeners.
 
 ```js
 hub.on('cheese', () => console.log('cheese!'))
@@ -142,7 +142,7 @@ child.emit('cheese') // cheese!
 
 ## hub.create(initial)
 
-Creates a new hub disconnected from the current hub. This is qquivalent to the Hub() constructor but can be called on the hub instance. Takes an optional object of event names to functions as initial listeners.
+Creates a new hub disconnected from the current hub. This is equivalent to the Hub() constructor but can be called on any hub instance. Takes an optional object of event names to functions as initial listeners.
 
 ```js
 hub.on('cheese', () => console.log('cheese!'))
